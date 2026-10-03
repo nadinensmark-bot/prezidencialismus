@@ -332,6 +332,35 @@
 
   footer { border-top: 1px solid var(--line); color: var(--muted); font-size: .8rem; text-align: center; padding: .8rem 16px; }
 
+  /* ---------- Postavy a scény (příběh) ---------- */
+  .scene { display: flex; flex-wrap: wrap; gap: 1rem 1.2rem; align-items: flex-end; justify-content: center; margin: .6rem 0 .4rem; }
+  .actor { display: flex; flex-direction: column; align-items: center; width: 11.5rem; max-width: 100%; margin: 0; text-align: center; animation: actorin .4s ease both; }
+  .actor:nth-child(2) { animation-delay: .12s; } .actor:nth-child(3) { animation-delay: .24s; } .actor:nth-child(4) { animation-delay: .36s; }
+  @keyframes actorin { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  .actor .avatar { width: 6.2rem; height: 7.4rem; }
+  .actor .avatar svg { width: 100%; height: 100%; display: block; }
+  .actor.hrac .avatar { filter: drop-shadow(0 0 0 transparent); }
+  .actor figcaption { margin-top: .2rem; font-size: .85rem; line-height: 1.25; }
+  .actor figcaption strong { display: block; }
+  .actor figcaption span { color: var(--muted); }
+  .actor.hrac figcaption strong::before { content: "★ "; color: var(--accent); }
+  .bubble {
+    position: relative; background: var(--bg-elev); border: 2px solid var(--line); border-radius: 14px;
+    padding: .5rem .7rem; font-size: .92rem; line-height: 1.35; margin-bottom: .7rem; max-width: 100%;
+    min-height: 2.6rem; display: flex; align-items: center; justify-content: center;
+  }
+  .bubble::after, .bubble::before { content: ""; position: absolute; left: 50%; transform: translateX(-50%); border: 9px solid transparent; }
+  .bubble::before { bottom: -19px; border-top-color: var(--line); }
+  .bubble::after { bottom: -16px; border-top-color: var(--bg-elev); }
+  .actor.hrac .bubble { border-color: var(--accent); }
+  .actor.hrac .bubble::before { border-top-color: var(--accent); }
+  .actor.ticho .bubble { visibility: hidden; }
+  .cast { display: grid; grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); gap: .8rem; margin-top: .4rem; }
+  .cast .actor { width: auto; animation: none; }
+  .cast .actor .avatar { width: 4.6rem; height: 5.5rem; }
+  .cast .actor figcaption { font-size: .8rem; }
+  @media (max-width: 600px) { .actor { width: 9rem; } .actor .avatar { width: 5rem; height: 6rem; } .bubble { font-size: .85rem; } }
+
   /* ---------- Úvodní video (přepis animace z Claude Design do vanilla JS) ---------- */
   #intro {
     position: fixed; inset: 0; z-index: 40; background: #15171b; color: #fff;
@@ -698,6 +727,220 @@ const INTRO_CAPS = [
   { scene: "S6", at: 0.2, text: "Teď si to vyzkoušej." },
   { scene: "S6", at: 2.0, text: "Vyber si zemi a roli a zjisti, co se stane." }
 ];
+
+/* ---------- PŘÍBĚH: postavy a jejich repliky ----------
+   Pro každý scénář: obsazeni (postavy), brief (úvodní scéna), sceny (scéna před
+   rozhodnutím; klíč = index bodu, u větvených bodů "index:vetev"), reakce
+   (po volbě; klíč = id volby) a konec (scéna podle konce).
+   Nálady: klid, radost, starost, hnev, strach, odhodlani.
+   Vzhled: plet, vlasy (barva), ucel (kratke | dlouhe | drdol | plesaty | kudrnate),
+   oblek (barva), doplnky (serpa | kravata | bryle | cepice | talar | odznak | motylek).
+   Postavy jsou smyšlené; reálné případy jsou v polích "realita". */
+const STORY = {
+  "usa-prezident": {
+    obsazeni: [
+      { id: "ty", jmeno: "Dana Whitfieldová", role: "prezidentka USA (hraješ ty)", vzhled: { plet: "#F1C9A5", vlasy: "#3B2A20", ucel: "drdol", oblek: "#2F4F8F", doplnky: ["serpa"] } },
+      { id: "hale", jmeno: "Robert Hale", role: "předseda Sněmovny, opozice", vzhled: { plet: "#E8B894", vlasy: "#9A9A9A", ucel: "kratke", oblek: "#3A3A3A", doplnky: ["kravata"] } },
+      { id: "soudkyne", jmeno: "Ruth Alvarezová", role: "federální soudkyně", vzhled: { plet: "#C68B5B", vlasy: "#2B2B2B", ucel: "dlouhe", oblek: "#1B1E24", doplnky: ["talar", "bryle"] } },
+      { id: "sam", jmeno: "Sam Okafor", role: "šéf prezidentské kanceláře", vzhled: { plet: "#7A4A2A", vlasy: "#1A1A1A", ucel: "kudrnate", oblek: "#556B2F", doplnky: ["odznak"] } }
+    ],
+    brief: [
+      { kdo: "ty", nalada: "odhodlani", rekne: "Vyhrála jsem. Těsně, ale vyhrála. Teď prosadím rozpočet, který jsem slíbila." },
+      { kdo: "hale", nalada: "klid", rekne: "Paní prezidentko, Sněmovna je naše. Bez nás nedostanete ani dolar." },
+      { kdo: "sam", nalada: "starost", rekne: "Za týden dojdou peníze. Pak přijde shutdown." }
+    ],
+    sceny: {
+      "0": [
+        { kdo: "hale", nalada: "hnev", rekne: "Váš rozpočet jsme odmítli. Polovina země vás ani nevolila." },
+        { kdo: "sam", nalada: "starost", rekne: "Tři možnosti, paní prezidentko. Všechny bolí." }
+      ],
+      "1:soud": [
+        { kdo: "soudkyne", nalada: "odhodlani", rekne: "Prezident nemůže vzít peníze, které Kongres výslovně odmítl. Příkaz se zastavuje." },
+        { kdo: "sam", nalada: "starost", rekne: "Můžeme to respektovat. Nebo jít proti soudu." }
+      ],
+      "1:dohoda": [
+        { kdo: "sam", nalada: "klid", rekne: "Za rok jsou volby do Kongresu. Na čem postavíme kampaň?" },
+        { kdo: "hale", nalada: "odhodlani", rekne: "Těším se. Voliči vám spočítají, co jste neudělala." }
+      ],
+      "2": [
+        { kdo: "hale", nalada: "radost", rekne: "Máme obě komory. Dva roky, paní prezidentko." },
+        { kdo: "sam", nalada: "starost", rekne: "Mandát máte do konce. Otázka je, jak ho použijete." }
+      ]
+    },
+    reakce: {
+      "1a": [{ kdo: "ty", nalada: "starost", rekne: "Slevila jsem. Média píšou o prohře, ale úřady fungují." }, { kdo: "hale", nalada: "radost", rekne: "Dohoda. Nikdo nevyhrál všechno." }],
+      "1b": [{ kdo: "sam", nalada: "strach", rekne: "Statisíce lidí bez výplaty. Volají nám letištní kontroly." }, { kdo: "hale", nalada: "hnev", rekne: "Tohle je vaše vina, ne naše." }],
+      "1c": [{ kdo: "hale", nalada: "hnev", rekne: "Obcházíte Kongres! Uvidíme se u soudu." }, { kdo: "soudkyne", nalada: "klid", rekne: "Žaloba přijata. Soud se tím bude zabývat." }],
+      "2s-a": [{ kdo: "soudkyne", nalada: "klid", rekne: "Rozhodnutí bylo respektováno. Tak to má být." }, { kdo: "ty", nalada: "starost", rekne: "Projekt je pryč. Ale pravidla platí." }],
+      "2s-b": [{ kdo: "ty", nalada: "hnev", rekne: "Političtí aktivisté v talárech!" }, { kdo: "soudkyne", nalada: "starost", rekne: "Soud nemá armádu. Má jen důvěru. A ta právě utrpěla." }],
+      "2d-a": [{ kdo: "ty", nalada: "klid", rekne: "Nudná kampaň. Ale stát funguje a lidé to vidí." }, { kdo: "hale", nalada: "klid", rekne: "Ztratíte křesla. Ale míň, než jsem čekal." }],
+      "2d-b": [{ kdo: "ty", nalada: "hnev", rekne: "Kongres mi brání plnit sliby!" }, { kdo: "hale", nalada: "hnev", rekne: "A prezidentka rozbíjí stát! A tak pořád dokola." }],
+      "3a": [{ kdo: "ty", nalada: "klid", rekne: "Velké reformy jsou pryč. Ale menší zákony procházejí." }, { kdo: "hale", nalada: "klid", rekne: "S tímhle se dá pracovat." }],
+      "3b": [{ kdo: "hale", nalada: "hnev", rekne: "Příkaz, zákon, veto, soud. Pořád dokola." }, { kdo: "soudkyne", nalada: "starost", rekne: "Případ za případem. Zemi to unavuje." }],
+      "3c": [{ kdo: "ty", nalada: "odhodlani", rekne: "Veto. A příští taky. A další." }, { kdo: "sam", nalada: "starost", rekne: "Dva roky se nehne nic." }]
+    },
+    konec: {
+      stabilita: [{ kdo: "ty", nalada: "radost", rekne: "Nebylo to hezké, ale fungovalo to." }, { kdo: "hale", nalada: "klid", rekne: "Příště to bude zase souboj. Ale podle pravidel." }],
+      pat: [{ kdo: "ty", nalada: "starost", rekne: "Dva roky bez výsledků." }, { kdo: "hale", nalada: "hnev", rekne: "Rozhodnou voliči. Zase." }, { kdo: "sam", nalada: "starost", rekne: "Instituce držely. Stát jen stál." }]
+    }
+  },
+
+  "usa-zakonodarci": {
+    obsazeni: [
+      { id: "ty", jmeno: "Marcus Reed", role: "předseda Sněmovny (hraješ ty)", vzhled: { plet: "#6B3F23", vlasy: "#111111", ucel: "kratke", oblek: "#2F4F8F", doplnky: ["kravata"] } },
+      { id: "prezident", jmeno: "Carl Danner", role: "prezident USA", vzhled: { plet: "#EFC3A0", vlasy: "#B5B5B5", ucel: "kratke", oblek: "#3A3A3A", doplnky: ["serpa"] } },
+      { id: "senatorka", jmeno: "Joan Kesslerová", role: "vůdkyně prezidentovy strany v Senátu", vzhled: { plet: "#F3D1B4", vlasy: "#D9B35B", ucel: "drdol", oblek: "#7A1F2B", doplnky: ["bryle"] } },
+      { id: "omar", jmeno: "Omar Haddad", role: "právník vyšetřovacího výboru", vzhled: { plet: "#C99468", vlasy: "#2B2B2B", ucel: "kratke", oblek: "#556B2F", doplnky: ["odznak"] } }
+    ],
+    brief: [
+      { kdo: "prezident", nalada: "klid", rekne: "Mám mandát od lidu. Kongres je jen překážka." },
+      { kdo: "ty", nalada: "odhodlani", rekne: "Ne, pane prezidente. Kongres je druhá polovina systému." },
+      { kdo: "omar", nalada: "starost", rekne: "Tři příkazy za týden. Dva obcházejí zákon, který jsme schválili." }
+    ],
+    sceny: {
+      "0": [
+        { kdo: "prezident", nalada: "radost", rekne: "Podepsáno. Co s tím uděláte?" },
+        { kdo: "omar", nalada: "klid", rekne: "Máme soud, máme rozpočet, máme vyšetřování." }
+      ],
+      "1": [
+        { kdo: "omar", nalada: "starost", rekne: "Svědectví máme. Dokument ne. Kouřící zbraň chybí." },
+        { kdo: "senatorka", nalada: "klid", rekne: "V Senátu máte 53 hlasů. Potřebujete 67. Moji lidé nehlasují proti svému prezidentovi." }
+      ],
+      "2:obzaloba": [
+        { kdo: "senatorka", nalada: "starost", rekne: "Senát soudí. Předsedá předseda Nejvyššího soudu. Spočítejte si hlasy." },
+        { kdo: "prezident", nalada: "hnev", rekne: "Nic jsem neudělal." }
+      ],
+      "2:volby": [
+        { kdo: "prezident", nalada: "starost", rekne: "Prohrál jsem křesla. Nabízím dohodu: omezím příkazy, vy pustíte rozpočet." },
+        { kdo: "omar", nalada: "klid", rekne: "Dohoda, nebo blokáda do konce období." }
+      ]
+    },
+    reakce: {
+      "1a": [{ kdo: "ty", nalada: "klid", rekne: "Žaloba podána. Bude to trvat měsíce." }, { kdo: "prezident", nalada: "hnev", rekne: "Soudy mi nebudou diktovat." }],
+      "1b": [{ kdo: "prezident", nalada: "hnev", rekne: "Bez peněz? Tak zavřete úřady a vysvětlete to lidem." }, { kdo: "ty", nalada: "starost", rekne: "Shutdown nikomu nepomůže. Ale je to naše zbraň." }],
+      "1c": [{ kdo: "prezident", nalada: "hnev", rekne: "Hon na čarodějnice!" }, { kdo: "omar", nalada: "odhodlani", rekne: "Veřejná slyšení začínají v pondělí." }],
+      "2a": [{ kdo: "ty", nalada: "odhodlani", rekne: "Sněmovna hlasovala. Prezident je obžalován." }, { kdo: "senatorka", nalada: "hnev", rekne: "Politický puč. Senát to smete ze stolu." }],
+      "2b": [{ kdo: "omar", nalada: "radost", rekne: "Dokumenty! Přímo z jeho kanceláře." }, { kdo: "senatorka", nalada: "starost", rekne: "Tohle se bude těžko hájit. I pro nás." }],
+      "2c": [{ kdo: "ty", nalada: "klid", rekne: "Ať rozhodnou voliči." }, { kdo: "prezident", nalada: "radost", rekne: "Výborně. A do voleb dělám, co chci." }],
+      "3o-a": [{ kdo: "senatorka", nalada: "starost", rekne: "Pane prezidente, hlasy nemáte. Ani od nás." }, { kdo: "prezident", nalada: "strach", rekne: "Pak odstoupím. Dřív, než mě vyhodí." }],
+      "3o-b": [{ kdo: "senatorka", nalada: "klid", rekne: "53 pro, 47 proti. Zproštěn." }, { kdo: "prezident", nalada: "radost", rekne: "Úplné očištění!" }],
+      "3o-c": [{ kdo: "ty", nalada: "starost", rekne: "Obžaloba zůstane viset. Rozhodnou volby." }, { kdo: "prezident", nalada: "radost", rekne: "Kongres couvl." }],
+      "3v-a": [{ kdo: "ty", nalada: "radost", rekne: "Nový zákon. Příští prezident už to takhle neudělá." }, { kdo: "prezident", nalada: "klid", rekne: "Podepsáno. Neochotně." }],
+      "3v-b": [{ kdo: "ty", nalada: "hnev", rekne: "Nic nedostanete." }, { kdo: "prezident", nalada: "hnev", rekne: "Tak nic nedostanete ani vy." }]
+    },
+    konec: {
+      stabilita: [{ kdo: "ty", nalada: "radost", rekne: "Systém se naučil něco nového." }, { kdo: "prezident", nalada: "klid", rekne: "Mám svázanější ruce. Ale vládnu." }],
+      pat: [{ kdo: "ty", nalada: "starost", rekne: "Dva roky nic." }, { kdo: "prezident", nalada: "hnev", rekne: "Dva roky příkazů a vet." }],
+      impeachment: [{ kdo: "ty", nalada: "klid", rekne: "Ústava fungovala. Těžko, ale fungovala." }, { kdo: "senatorka", nalada: "starost", rekne: "Příště to bude zase politika." }, { kdo: "omar", nalada: "klid", rekne: "Záznam je jasný. Ať s ním naloží voliči." }]
+    }
+  },
+
+  "latam-prezident": {
+    obsazeni: [
+      { id: "ty", jmeno: "Mateo Salgado", role: "nový reformní prezident (hraješ ty)", vzhled: { plet: "#C98B5E", vlasy: "#1A1A1A", ucel: "kratke", oblek: "#2F4F8F", doplnky: ["serpa"] } },
+      { id: "lucia", jmeno: "Lucía Ferreira", role: "předsedkyně Kongresu, opozice", vzhled: { plet: "#E2B48C", vlasy: "#3B2A20", ucel: "dlouhe", oblek: "#7A1F2B", doplnky: ["motylek"] } },
+      { id: "general", jmeno: "generál Ramírez", role: "velitel armády", vzhled: { plet: "#B8865F", vlasy: "#4A4A4A", ucel: "plesaty", oblek: "#3C4A2C", doplnky: ["cepice"] } },
+      { id: "ana", jmeno: "Ana Ruizová", role: "ministryně hospodářství", vzhled: { plet: "#D9A579", vlasy: "#111111", ucel: "drdol", oblek: "#556B2F", doplnky: ["bryle"] } }
+    ],
+    brief: [
+      { kdo: "ty", nalada: "odhodlani", rekne: "Třicet šest procent. Ale vyhrál jsem. Lidé chtějí reformy." },
+      { kdo: "lucia", nalada: "klid", rekne: "Šedesát čtyři procent vás nevolilo, pane prezidente. A Kongres je náš." },
+      { kdo: "ana", nalada: "starost", rekne: "Inflace roste. Nemáme čas." }
+    ],
+    sceny: {
+      "0": [
+        { kdo: "lucia", nalada: "hnev", rekne: "Znárodnění neprojde. Pozemková reforma neprojde." },
+        { kdo: "ana", nalada: "starost", rekne: "Vaši voliči čekají na výsledky. Už teď." }
+      ],
+      "1:klid": [
+        { kdo: "ana", nalada: "strach", rekne: "Inflace tři sta procent. Dopravci stávkují. V obchodech není mouka." },
+        { kdo: "general", nalada: "klid", rekne: "Generálové se ptají, jak dlouho to vydrží." }
+      ],
+      "1:eskalace": [
+        { kdo: "lucia", nalada: "hnev", rekne: "Kongres prohlásil, že vaše vláda porušuje ústavu." },
+        { kdo: "general", nalada: "starost", rekne: "Nejvyšší soud říká totéž. Důstojníci jsou nervózní." }
+      ],
+      "2:dohoda": [
+        { kdo: "lucia", nalada: "klid", rekne: "Dohoda drží. Velké reformy ale neprojdou." },
+        { kdo: "ana", nalada: "starost", rekne: "Vaši lidé chtějí referendum o nové ústavě. Obešlo by Kongres." }
+      ],
+      "2:armada": [
+        { kdo: "general", nalada: "odhodlani", rekne: "Pane prezidente, generálové žádají vaši rezignaci. V zájmu národa." },
+        { kdo: "ana", nalada: "strach", rekne: "Část našich lidí chce zbraně." }
+      ]
+    },
+    reakce: {
+      "1a": [{ kdo: "lucia", nalada: "klid", rekne: "Dobře. Menší reforma, postupně. Můžeme jednat." }, { kdo: "ana", nalada: "starost", rekne: "Ulice bude říkat, že jste zradil." }],
+      "1b": [{ kdo: "lucia", nalada: "hnev", rekne: "Dekrety? Tohle je porušení ústavy!" }, { kdo: "general", nalada: "klid", rekne: "Armáda sleduje situaci." }],
+      "1c": [{ kdo: "ty", nalada: "odhodlani", rekne: "Lid je se mnou!" }, { kdo: "lucia", nalada: "hnev", rekne: "Příští týden bude v ulicích náš lid. Dvakrát větší." }],
+      "2k-a": [{ kdo: "lucia", nalada: "starost", rekne: "Národní dohoda. Moji radikálové zuří, ale podepíšu." }, { kdo: "general", nalada: "klid", rekne: "Dobře. Zůstáváme v kasárnách." }],
+      "2k-b": [{ kdo: "ty", nalada: "hnev", rekne: "Sabotáž! Opozice a cizí zájmy ničí zemi!" }, { kdo: "general", nalada: "starost", rekne: "Kongres nás vyzval obnovit pořádek. Scházíme se bez vás." }],
+      "2e-a": [{ kdo: "lucia", nalada: "starost", rekne: "Jednat? Pozdě, ale dobře. Chceme záruky: konec dekretů." }, { kdo: "general", nalada: "klid", rekne: "Jednání sledujeme." }],
+      "2e-b": [{ kdo: "general", nalada: "hnev", rekne: "Můj předchůdce rezignoval, protože ctil ústavu. Armáda už není moje." }, { kdo: "lucia", nalada: "odhodlani", rekne: "Vyzvali jsme armádu, ať zjedná pořádek." }],
+      "3d-a": [{ kdo: "ty", nalada: "klid", rekne: "Dokončím období. Volby rozhodnou." }, { kdo: "lucia", nalada: "radost", rekne: "Příště to zkusíme my. Podle pravidel." }],
+      "3d-b": [{ kdo: "lucia", nalada: "hnev", rekne: "Bojkot. Tohle referendum neuznáváme." }, { kdo: "general", nalada: "starost", rekne: "A jsme zpátky, kde jsme byli." }],
+      "3a-a": [{ kdo: "ty", nalada: "starost", rekne: "Vyhlásím referendum. Když lid řekne ne, odejdu." }, { kdo: "general", nalada: "klid", rekne: "Armáda váhá. Zatím." }],
+      "3a-b": [{ kdo: "ty", nalada: "odhodlani", rekne: "Mandát mám do konce. Neustoupím." }, { kdo: "general", nalada: "hnev", rekne: "Pak to rozhodneme my." }]
+    },
+    konec: {
+      stabilita: [{ kdo: "ty", nalada: "klid", rekne: "Pomalu. Ale v míru." }, { kdo: "lucia", nalada: "klid", rekne: "Demokracie přežila." }],
+      pat: [{ kdo: "ty", nalada: "starost", rekne: "Nic se nehýbe. Ale armáda je v kasárnách." }, { kdo: "lucia", nalada: "starost", rekne: "Zatím." }],
+      rozpad: [{ kdo: "general", nalada: "odhodlani", rekne: "Kongres rozpuštěn. Ústava zrušena." }, { kdo: "lucia", nalada: "strach", rekne: "Tohle jsme nechtěli." }, { kdo: "ty", nalada: "strach", rekne: "Palác hoří." }]
+    }
+  },
+
+  "latam-zakonodarci": {
+    obsazeni: [
+      { id: "ty", jmeno: "Lucía Ferreira", role: "předsedkyně parlamentu, opozice (hraješ ty)", vzhled: { plet: "#E2B48C", vlasy: "#3B2A20", ucel: "dlouhe", oblek: "#2F4F8F", doplnky: ["motylek"] } },
+      { id: "prezident", jmeno: "Nicolás Varela", role: "prezident", vzhled: { plet: "#C98B5E", vlasy: "#1A1A1A", ucel: "kratke", oblek: "#7A1F2B", doplnky: ["serpa"] } },
+      { id: "soudce", jmeno: "soudce Ortega", role: "předseda Nejvyššího soudu, prezidentův člověk", vzhled: { plet: "#D9A579", vlasy: "#8A8A8A", ucel: "plesaty", oblek: "#1B1E24", doplnky: ["talar"] } },
+      { id: "general", jmeno: "generál Peña", role: "velitel armády", vzhled: { plet: "#B8865F", vlasy: "#2B2B2B", ucel: "kratke", oblek: "#3C4A2C", doplnky: ["cepice"] } },
+      { id: "henriksen", jmeno: "Erik Henriksen", role: "mezinárodní zprostředkovatel", vzhled: { plet: "#F3D1B4", vlasy: "#D9B35B", ucel: "kratke", oblek: "#556B2F", doplnky: ["bryle", "kravata"] } }
+    ],
+    brief: [
+      { kdo: "ty", nalada: "radost", rekne: "Vyhráli jsme volby do parlamentu. Dvě třetiny křesel." },
+      { kdo: "prezident", nalada: "hnev", rekne: "Parlament? Já mám dekrety. A soud." },
+      { kdo: "soudce", nalada: "klid", rekne: "Nový soud byl jmenován včera večer. Všichni jsme prezidentovi lidé." }
+    ],
+    sceny: {
+      "0": [
+        { kdo: "prezident", nalada: "klid", rekne: "Dekret číslo čtrnáct. Parlament se ignoruje." },
+        { kdo: "soudce", nalada: "klid", rekne: "Pokud to napadnete, rozhodneme rychle." }
+      ],
+      "1": [
+        { kdo: "prezident", nalada: "radost", rekne: "Ústavodárné shromáždění. Zvolené podle mých pravidel. Má teď vaše pravomoci." },
+        { kdo: "ty", nalada: "starost", rekne: "Máme parlament, který nic nerozhoduje." }
+      ],
+      "2:ustavni": [
+        { kdo: "henriksen", nalada: "starost", rekne: "Miliony lidí odcházejí ze země. Prezident pod tlakem nabízí dialog." },
+        { kdo: "prezident", nalada: "klid", rekne: "Dialog. Na mých podmínkách." }
+      ],
+      "2:armada": [
+        { kdo: "general", nalada: "klid", rekne: "Sesadíme prezidenta. Moc předáme parlamentu. Až se situace uklidní." },
+        { kdo: "henriksen", nalada: "starost", rekne: "Armáda, která jednou sesadí prezidenta, moc tak snadno nevrátí." }
+      ]
+    },
+    reakce: {
+      "1a": [{ kdo: "soudce", nalada: "radost", rekne: "Dekrety jsou v pořádku. A parlament je v pohrdání soudem." }, { kdo: "ty", nalada: "hnev", rekne: "Soud, který má hlídat prezidenta, hlídá nás." }],
+      "1b": [{ kdo: "prezident", nalada: "radost", rekne: "Rozpočet? Schválil mi ho soud. Vás nepotřebuji." }, { kdo: "ty", nalada: "starost", rekne: "Naše hlavní zbraň přestala fungovat." }],
+      "1c": [{ kdo: "henriksen", nalada: "klid", rekne: "Sousední státy vyzývají k dialogu." }, { kdo: "prezident", nalada: "hnev", rekne: "Zahraniční spiknutí!" }],
+      "2a": [{ kdo: "ty", nalada: "odhodlani", rekne: "Zasedáme dál. Každé porušení ústavy zapíšeme." }, { kdo: "henriksen", nalada: "klid", rekne: "Padesát zemí uznává váš parlament jako jediný legitimní." }],
+      "2b": [{ kdo: "prezident", nalada: "radost", rekne: "Opozice odešla sama. Volby bez soupeře." }, { kdo: "henriksen", nalada: "starost", rekne: "Doma už prezidenta nikdo nebrzdí." }],
+      "2c": [{ kdo: "general", nalada: "klid", rekne: "Někteří důstojníci naslouchají." }, { kdo: "prezident", nalada: "hnev", rekne: "Spiknutí! Zatkněte je." }],
+      "3u-a": [{ kdo: "henriksen", nalada: "radost", rekne: "Dohoda: nová volební komise, pozorovatelé, termín voleb." }, { kdo: "prezident", nalada: "starost", rekne: "Podepsal jsem. Pod tlakem sankcí." }],
+      "3u-b": [{ kdo: "ty", nalada: "odhodlani", rekne: "Parlament prohlašuje: prezident opustil úřad." }, { kdo: "soudce", nalada: "radost", rekne: "Zrušeno. Další?" }, { kdo: "prezident", nalada: "radost", rekne: "Jaký impeachment?" }],
+      "3u-c": [{ kdo: "general", nalada: "hnev", rekne: "Protesty rozehnány. Režim stojí." }, { kdo: "ty", nalada: "strach", rekne: "Desítky mrtvých. A on vydržel." }],
+      "3a-a": [{ kdo: "ty", nalada: "odhodlani", rekne: "Ne. Ani dobrý převrat není podle pravidel." }, { kdo: "general", nalada: "klid", rekne: "Jak chcete. Zůstáváme v kasárnách." }],
+      "3a-b": [{ kdo: "general", nalada: "radost", rekne: "Prezident je pryč." }, { kdo: "ty", nalada: "strach", rekne: "A volby? Odloženy. Zase." }]
+    },
+    konec: {
+      stabilita: [{ kdo: "ty", nalada: "radost", rekne: "Volby. Konečně." }, { kdo: "henriksen", nalada: "klid", rekne: "Křehké, ale je to cesta zpět." }],
+      pat: [{ kdo: "ty", nalada: "starost", rekne: "Zasedáme. Nikdo nás neposlouchá." }, { kdo: "prezident", nalada: "radost", rekne: "Pokračujte. Bavím se." }],
+      impeachment: [{ kdo: "ty", nalada: "klid", rekne: "Rozhodnutí platí. Instituce ještě drží." }, { kdo: "prezident", nalada: "strach", rekne: "To není možné." }],
+      rozpad: [{ kdo: "prezident", nalada: "radost", rekne: "Parlament rozpuštěn." }, { kdo: "general", nalada: "klid", rekne: "Pořádek je obnoven." }, { kdo: "ty", nalada: "strach", rekne: "Tak končí demokracie. Potichu." }]
+    }
+  }
+};
 
 /* ---------- SCÉNÁŘE ---------- */
 const SCENARIOS = {
@@ -1249,6 +1492,99 @@ function aktualniBod() {
   const vetev = posledni && posledni.volba.vetev;
   return bod.varianty[vetev] || bod.varianty.default || Object.values(bod.varianty)[0];
 }
+// Klíč scény pro aktuální bod: "index" nebo "index:vetev"
+function bodKlic() {
+  const bod = scenario().body[state.bodIndex];
+  if (!bod.podle) return String(state.bodIndex);
+  const posledni = state.log[state.log.length - 1];
+  const vetev = (posledni && posledni.volba.vetev) || "default";
+  return `${state.bodIndex}:${bod.varianty[vetev] ? vetev : Object.keys(bod.varianty)[0]}`;
+}
+
+/* ---------- Postavy: kreslené SVG avatary ----------
+   avatarSvg(vzhled, nalada) vrací SVG; nálady mění obočí, oči a ústa. */
+function avatarSvg(v, nalada) {
+  const skin = v.plet || "#E8B894", hair = v.vlasy || "#2B2B2B", suit = v.oblek || "#3A3A3A";
+  const dop = v.doplnky || [];
+  const ink = "#1B1E24";
+  // Vlasy (za hlavou a čepice/pokrývka)
+  let hairBack = "", hairFront = "";
+  switch (v.ucel) {
+    case "dlouhe": hairBack = `<path d="M24 46 Q22 14 50 14 Q78 14 76 46 L79 86 L64 86 L64 52 Q50 42 36 52 L36 86 L21 86 Z" fill="${hair}"/>`; break;
+    case "drdol": hairBack = `<circle cx="50" cy="19" r="9" fill="${hair}"/>`; hairFront = `<path d="M26 44 Q26 18 50 18 Q74 18 74 44 Q64 30 50 32 Q36 30 26 44 Z" fill="${hair}"/>`; break;
+    case "kudrnate": hairFront = [[30, 30], [38, 22], [50, 18], [62, 22], [70, 30], [26, 40], [74, 40]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="9" fill="${hair}"/>`).join(""); break;
+    case "plesaty": hairFront = `<path d="M26 44 Q24 34 30 30 L32 42 Z M74 44 Q76 34 70 30 L68 42 Z" fill="${hair}"/>`; break;
+    default: hairFront = `<path d="M26 44 Q26 18 50 18 Q74 18 74 44 Q62 30 50 32 Q38 30 26 44 Z" fill="${hair}"/>`;
+  }
+  // Výraz
+  const N = nalada || "klid";
+  let brows, eyes, mouth;
+  switch (N) {
+    case "hnev": brows = `<path d="M34 36 L46 41 M54 41 L66 36" stroke="${ink}" stroke-width="3" stroke-linecap="round"/>`; break;
+    case "starost": brows = `<path d="M34 41 L46 37 M54 37 L66 41" stroke="${ink}" stroke-width="2.6" stroke-linecap="round"/>`; break;
+    case "strach": brows = `<path d="M34 36 L46 33 M54 33 L66 36" stroke="${ink}" stroke-width="2.6" stroke-linecap="round"/>`; break;
+    case "odhodlani": brows = `<path d="M34 39 L46 40 M54 40 L66 39" stroke="${ink}" stroke-width="3.2" stroke-linecap="round"/>`; break;
+    default: brows = `<path d="M35 38 L46 37 M54 37 L65 38" stroke="${ink}" stroke-width="2.4" stroke-linecap="round"/>`;
+  }
+  if (N === "radost") eyes = `<path d="M37 47 q4 -5 8 0 M55 47 q4 -5 8 0" fill="none" stroke="${ink}" stroke-width="2.6" stroke-linecap="round"/>`;
+  else if (N === "strach") eyes = `<circle cx="41" cy="46" r="5" fill="#fff" stroke="${ink}" stroke-width="1.5"/><circle cx="59" cy="46" r="5" fill="#fff" stroke="${ink}" stroke-width="1.5"/><circle cx="41" cy="46" r="2.4" fill="${ink}"/><circle cx="59" cy="46" r="2.4" fill="${ink}"/>`;
+  else eyes = `<circle cx="41" cy="46" r="3" fill="${ink}"/><circle cx="59" cy="46" r="3" fill="${ink}"/><circle cx="42" cy="45" r="1" fill="#fff"/><circle cx="60" cy="45" r="1" fill="#fff"/>`;
+  switch (N) {
+    case "radost": mouth = `<path d="M40 56 q10 11 20 0" fill="#fff" stroke="${ink}" stroke-width="2.4" stroke-linejoin="round"/>`; break;
+    case "starost": mouth = `<path d="M41 60 q9 -6 18 0" fill="none" stroke="${ink}" stroke-width="2.4" stroke-linecap="round"/>`; break;
+    case "hnev": mouth = `<path d="M40 61 q10 -8 20 0" fill="none" stroke="${ink}" stroke-width="3" stroke-linecap="round"/>`; break;
+    case "strach": mouth = `<ellipse cx="50" cy="59" rx="5" ry="6.5" fill="${ink}"/>`; break;
+    case "odhodlani": mouth = `<path d="M42 58 h16" stroke="${ink}" stroke-width="3.2" stroke-linecap="round"/>`; break;
+    default: mouth = `<path d="M43 58 h14" stroke="${ink}" stroke-width="2.4" stroke-linecap="round"/>`;
+  }
+  const cheeks = N === "radost" || N === "hnev" ? `<circle cx="34" cy="53" r="4" fill="#E8766D" opacity=".45"/><circle cx="66" cy="53" r="4" fill="#E8766D" opacity=".45"/>` : "";
+  // Doplňky
+  let extra = "";
+  if (dop.includes("talar")) extra += `<path d="M38 78 L50 96 L62 78 Z" fill="#fff"/>`;
+  if (dop.includes("serpa")) extra += `<path d="M30 84 L70 120 L58 120 L26 92 Z" fill="#C8342C"/><path d="M33 86 L66 118" stroke="#fff" stroke-width="2"/>`;
+  if (dop.includes("kravata")) extra += `<path d="M46 80 L54 80 L52 88 L54 104 L50 110 L46 104 L48 88 Z" fill="#7A1F2B"/>`;
+  if (dop.includes("motylek")) extra += `<path d="M38 82 L48 86 L48 90 L38 94 Z M62 82 L52 86 L52 90 L62 94 Z" fill="#7A1F2B"/><circle cx="50" cy="88" r="3" fill="#7A1F2B"/>`;
+  if (dop.includes("odznak")) extra += `<circle cx="34" cy="98" r="4.5" fill="#D9B35B" stroke="${ink}" stroke-width="1"/>`;
+  if (dop.includes("bryle")) extra += `<circle cx="41" cy="46" r="8" fill="none" stroke="${ink}" stroke-width="2"/><circle cx="59" cy="46" r="8" fill="none" stroke="${ink}" stroke-width="2"/><path d="M49 46 h2 M33 45 l-7 -3 M67 45 l7 -3" stroke="${ink}" stroke-width="2"/>`;
+  if (dop.includes("cepice")) { hairFront = ""; hairBack = ""; extra += `<path d="M24 34 Q26 14 50 14 Q74 14 76 34 Z" fill="#3C4A2C"/><rect x="21" y="32" width="58" height="6" rx="2" fill="#2B3520"/><circle cx="50" cy="26" r="3.5" fill="#D9B35B"/>`; }
+  return `<svg viewBox="0 0 100 120" role="img" aria-label="${esc(nalada || "")}">
+    ${hairBack}
+    <path d="M16 120 V100 Q16 82 40 78 H60 Q84 82 84 100 V120 Z" fill="${suit}"/>
+    <rect x="44" y="62" width="12" height="18" fill="${skin}"/>
+    <circle cx="27" cy="47" r="4" fill="${skin}"/><circle cx="73" cy="47" r="4" fill="${skin}"/>
+    <circle cx="50" cy="46" r="24" fill="${skin}"/>
+    ${hairFront}${cheeks}${brows}${eyes}${mouth}${extra}
+  </svg>`;
+}
+
+const NALADA_POPIS = { klid: "klid", radost: "radost", starost: "starost", hnev: "hněv", strach: "strach", odhodlani: "odhodlání" };
+function story() { return STORY[scenarioKey()]; }
+function postava(id) { return (story().obsazeni || []).find(p => p.id === id); }
+// Scéna: řada postav s bublinami. lines = [{kdo, nalada, rekne}]
+function sceneHtml(lines, opts = {}) {
+  if (!lines || !lines.length) return "";
+  return `<div class="scene" aria-label="Scéna">${lines.map(l => {
+    const p = postava(l.kdo); if (!p) return "";
+    return `<figure class="actor ${l.kdo === "ty" ? "hrac" : ""} ${l.rekne ? "" : "ticho"}">
+      <div class="bubble">${l.rekne ? `„${nbsp(esc(l.rekne))}“` : ""}</div>
+      <div class="avatar" title="${NALADA_POPIS[l.nalada] || ""}">${avatarSvg(p.vzhled, l.nalada)}</div>
+      <figcaption><strong>${esc(p.jmeno)}</strong><span>${nbsp(esc(opts.role === false ? "" : p.role))}</span></figcaption>
+    </figure>`;
+  }).join("")}</div>`;
+}
+function castHtml() {
+  const s = story(); if (!s) return "";
+  return `<div class="cast">${s.obsazeni.map(p => `<figure class="actor ${p.id === "ty" ? "hrac" : ""}">
+    <div class="avatar">${avatarSvg(p.vzhled, "klid")}</div>
+    <figcaption><strong>${esc(p.jmeno)}</strong><span>${nbsp(esc(p.role))}</span></figcaption></figure>`).join("")}</div>`;
+}
+// Závěrečná scéna podle konce; když pro daný konec není, hráč sám s odpovídající náladou
+function konecScena() {
+  const s = story(); if (!s) return [];
+  if (s.konec && s.konec[state.konec]) return s.konec[state.konec];
+  const nalada = { stabilita: "radost", pat: "starost", impeachment: "klid", rozpad: "strach" }[state.konec] || "klid";
+  return [{ kdo: "ty", nalada, rekne: "" }];
+}
 
 /* ---------- Navigace ---------- */
 function go(screen) {
@@ -1404,6 +1740,14 @@ const screens = {
         <p class="lead" style="margin:0">${fmt(s.brief)}</p>
       </div>
       <div class="card">
+        <div class="kicker">Kdo v příběhu vystupuje</div>
+        ${castHtml()}
+      </div>
+      <div class="card">
+        <div class="kicker">Ráno po volbách</div>
+        ${sceneHtml(story().brief)}
+      </div>
+      <div class="card">
         <div class="kicker">Ukazatele na začátku</div>
         <p style="margin:0"><strong>Demokratické zdraví ${s.start.dz}</strong>: jak moc systém funguje podle pravidel a drží pohromadě.<br>
         <strong>Koncentrace moci u prezidenta ${s.start.km}</strong>: jak moc se moc stahuje k jedné osobě.</p>
@@ -1426,6 +1770,7 @@ const screens = {
       <div class="kicker">${ZEME[state.zeme].nazev} · ${ROLE[state.role].nazev} · rozhodnutí ${n} ze 3</div>
       <div class="card">
         <h2>Rozhodnutí ${n}</h2>
+        ${p ? "" : sceneHtml((story().sceny || {})[bodKlic()])}
         <p class="lead" style="margin:0">${fmt(bod.situace)}</p>
       </div>`;
     if (!p) {
@@ -1441,6 +1786,7 @@ const screens = {
       html += `
       <div class="card result-box">
         <div class="kicker">Zvolil jsi: ${esc(p.text)}</div>
+        ${sceneHtml((story().reakce || {})[p.id])}
         <h3>Co se stalo</h3>
         <p>${fmt(p.dusledek)}</p>
         <div class="shift">
@@ -1470,6 +1816,7 @@ const screens = {
       <div class="card ending ${state.konec}">
         <div class="kicker">Konec cesty: ${ZEME[state.zeme].nazev} · ${ROLE[state.role].nazev}</div>
         <h1>${k.nazev}</h1>
+        ${sceneHtml(konecScena())}
         <p class="lead">${nbsp(k.popis)}</p>
         ${poznamky.map(pz => `<p><em>${nbsp(esc(pz))}</em></p>`).join("")}
         <p><strong>${nbsp(k.pouceni)}</strong></p>
@@ -1499,6 +1846,7 @@ const screens = {
         <dl>
           <dt>Situace</dt><dd>${fmt(l.situace)}</dd>
           <dt>Co sis vybral</dt><dd><strong>${nbsp(esc(l.volba.text))}</strong></dd>
+          <dt>Jak zareagovali</dt><dd>${sceneHtml((story().reakce || {})[l.volba.id], { role: false }) || "<span class=\"muted\">(bez reakce)</span>"}</dd>
           <dt>Co to způsobilo</dt><dd>${fmt(l.volba.dusledek)}<br><span class="muted small">Demokratické zdraví ${l.dzPred} → ${l.dzPo} (${d(l.volba.dz)}), koncentrace moci ${l.kmPred} → ${l.kmPo} (${d(l.volba.km)}).</span></dd>
           <dt>Proč to tak je</dt><dd><div class="infobox proc" style="margin:.3rem 0">${fmt(l.volba.proc)}</div></dd>
           <dt>V realitě</dt><dd><div class="infobox realita" style="margin:.3rem 0">${fmt(l.volba.realita)}</div></dd>
