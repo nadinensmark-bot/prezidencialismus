@@ -2,7 +2,9 @@
 <html lang="cs">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f6f4ee" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#15171b" media="(prefers-color-scheme: dark)">
 <meta name="color-scheme" content="light dark">
 <title>Formy vlády: prezidencialismus</title>
 <meta name="description" content="Vzdělávací rozhodovací hra pro střední školy: Jaké jsou výhody a rizika prezidentského systému?">
@@ -248,7 +250,7 @@
 
   /* Pojmy v textu */
   .term {
-    background: none; border: 0; padding: 0; font: inherit; color: var(--term);
+    display: inline; background: none; border: 0; padding: 0; font: inherit; color: var(--term);
     text-decoration: underline dotted; text-decoration-thickness: 2px; text-underline-offset: 3px;
     cursor: pointer;
   }
@@ -279,7 +281,7 @@
   details.gl[open] summary::after { content: "−"; }
   details.gl .gl-in { padding: 0 .9rem .8rem; font-size: .95rem; }
   details.gl .gl-in p { margin: .3em 0; }
-  .tag { display: inline-block; font-size: .7rem; padding: .05rem .5rem; border-radius: 999px; background: var(--bg-soft); color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .05em; }
+  .tag { display: inline-block; flex: none; white-space: nowrap; font-size: .7rem; padding: .05rem .5rem; border-radius: 999px; background: var(--bg-soft); color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .05em; }
   .tag.core { background: var(--accent); color: var(--accent-ink); }
 
   /* Primer schémata */
@@ -343,7 +345,8 @@
 
   /* ---------- Postavy a scény (příběh) ---------- */
   .scene { display: flex; flex-wrap: wrap; gap: 1rem 1.2rem; align-items: flex-end; justify-content: center; margin: .6rem 0 .4rem; }
-  .actor { display: flex; flex-direction: column; align-items: center; width: 11.5rem; max-width: 100%; margin: 0; text-align: center; animation: actorin .4s ease both; }
+  .actor { display: grid; grid-template-areas: "bubble" "avatar" "name"; justify-items: center; align-content: end; width: 11.5rem; max-width: 100%; margin: 0; text-align: center; animation: actorin .4s ease both; }
+  .actor .bubble { grid-area: bubble; } .actor .avatar { grid-area: avatar; } .actor figcaption { grid-area: name; }
   .actor:nth-child(2) { animation-delay: .12s; } .actor:nth-child(3) { animation-delay: .24s; } .actor:nth-child(4) { animation-delay: .36s; }
   @keyframes actorin { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
   .actor .avatar { width: 6.2rem; height: 7.4rem; }
@@ -365,11 +368,9 @@
   .actor.hrac .bubble::before { border-top-color: var(--accent); }
   .actor.ticho .bubble { visibility: hidden; }
   .cast { display: grid; grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); gap: .8rem; margin-top: .4rem; }
-  @media (max-width: 600px) { .cast { grid-template-columns: 1fr 1fr; gap: .5rem; } }
   .cast .actor { width: auto; animation: none; }
   .cast .actor .avatar { width: 4.6rem; height: 5.5rem; }
   .cast .actor figcaption { font-size: .8rem; }
-  @media (max-width: 600px) { .actor { width: 9rem; } .actor .avatar { width: 5rem; height: 6rem; } .bubble { font-size: .85rem; } }
 
   /* ---------- Úvodní video (přepis animace z Claude Design do vanilla JS) ---------- */
   #intro {
@@ -410,6 +411,68 @@
     .iv-bar { margin-top: auto; }
   }
 
+  /* ---------- Mobil na prvním místě (telefon na výšku) ---------- */
+  button, .option, .choice-card, .term { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+  .lbl-s { display: none; }
+  @media (max-width: 600px) {
+    .lbl-l { display: none; } .lbl-s { display: inline; }
+    main { padding: .8rem 12px 2.5rem; }
+    h1 { font-size: 1.65rem; } h2 { font-size: 1.3rem; } h3 { font-size: 1.08rem; }
+    .lead { font-size: 1.02rem; }
+    p { margin-bottom: .7em; }
+    .card { padding: .85rem .95rem; border-radius: 12px; margin-bottom: .7rem; }
+    .kicker { font-size: .66rem; margin-bottom: .2rem; }
+    .actions { gap: .5rem; margin-top: .8rem; }
+    .actions .btn { flex: 1 1 100%; padding: .85rem 1rem; text-align: center; }
+    .option { padding: .85rem .85rem; gap: .65rem; }
+    .option .letter { flex-basis: 1.8rem; height: 1.8rem; font-size: .9rem; }
+    .choice-card { padding: .9rem 1rem; }
+    .choice-card .emoji { font-size: 1.6rem; margin-bottom: .1rem; }
+    .grid2 { gap: .7rem; }
+    .ending h1 { font-size: 1.75rem; }
+    .ending-scale { font-size: .72rem; }
+    .infobox { padding: .65rem .8rem; margin: .6rem 0; }
+    .shift { gap: .6rem 1rem; font-size: .9rem; }
+    .debrief-card dt { font-size: .72rem; }
+    table.summary { font-size: .9rem; }
+    footer { font-size: .7rem; padding-bottom: calc(.8rem + env(safe-area-inset-bottom)); }
+    .schema .box { padding: .65rem .8rem; }
+    .flow .node { padding: .3rem .5rem; font-size: .95rem; }
+
+    /* Scény jako chat: avatar vedle bubliny, hráč zrcadlově vpravo */
+    .scene { flex-direction: column; align-items: stretch; gap: .55rem; margin: .4rem 0; }
+    .actor { width: auto; grid-template-columns: 3.3rem minmax(0, 1fr); grid-template-areas: "avatar name" "avatar bubble"; column-gap: .55rem; row-gap: .1rem; justify-items: start; align-items: start; align-content: start; text-align: left; }
+    .actor .avatar { width: 3.3rem; height: 3.9rem; }
+    .actor figcaption { margin: 0; font-size: .74rem; line-height: 1.2; }
+    .actor figcaption strong { display: inline; }
+    .actor figcaption span { display: inline; }
+    .actor figcaption span::before { content: " · "; }
+    .actor .bubble { width: 100%; margin: 0; min-height: 0; justify-content: flex-start; text-align: left; padding: .5rem .7rem; font-size: .92rem; border-top-left-radius: 4px; }
+    .actor .bubble::before, .actor .bubble::after { display: none; }
+    .actor.hrac { grid-template-columns: minmax(0, 1fr) 3.3rem; grid-template-areas: "name avatar" "bubble avatar"; justify-items: end; text-align: right; }
+    .actor.hrac .bubble { text-align: left; border-top-left-radius: 14px; border-top-right-radius: 4px; }
+    .actor.hrac figcaption span { display: none; }
+    .actor.ticho .bubble { display: none; }
+    .actor:nth-child(n) { animation-delay: 0s; }
+
+    /* Obsazení jako vodorovný pás */
+    .cast { display: flex; overflow-x: auto; gap: .5rem; padding: .2rem 0 .4rem; scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch; }
+    .cast .actor { flex: 0 0 6.4rem; grid-template-columns: 1fr; grid-template-areas: "avatar" "name"; justify-items: center; text-align: center; scroll-snap-align: start; }
+    .cast .actor .avatar { width: 3.6rem; height: 4.3rem; }
+    .cast .actor figcaption strong { display: block; }
+    .cast .actor figcaption span { display: block; }
+    .cast .actor figcaption span::before { content: none; }
+
+    /* Popover pojmu jako spodní panel, slovníček přes celou obrazovku */
+    #popover { position: fixed; left: 10px !important; right: 10px; top: auto !important; bottom: calc(10px + env(safe-area-inset-bottom)); max-width: none; font-size: .95rem; box-shadow: 0 -4px 24px rgba(0,0,0,.25); }
+    dialog { width: 100vw; max-width: 100vw; height: 100dvh; max-height: 100dvh; margin: 0; border: 0; border-radius: 0; }
+    .dlg-body { max-height: calc(100dvh - 3.6rem); padding-bottom: calc(1rem + env(safe-area-inset-bottom)); }
+    details.gl summary { padding: .7rem .8rem; }
+
+    /* Úvodní video: lišta s bezpečným okrajem */
+    .iv-bar { padding-bottom: calc(.6rem + env(safe-area-inset-bottom)); }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation: none !important; transition: none !important; }
   }
@@ -427,11 +490,11 @@
   </div>
   <div id="stav" hidden aria-live="polite">
     <div class="meter">
-      <div class="meter-label"><strong>Demokratické zdraví</strong><span><span id="dzVal">70</span><span id="dzDelta" class="delta"></span></span></div>
+      <div class="meter-label"><strong><span class="lbl-l">Demokratické zdraví</span><span class="lbl-s">Demokracie</span></strong><span><span id="dzVal">70</span><span id="dzDelta" class="delta"></span></span></div>
       <div class="bar dz" id="dzBar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="70" aria-label="Demokratické zdraví"><span></span></div>
     </div>
     <div class="meter">
-      <div class="meter-label"><strong>Koncentrace moci u prezidenta</strong><span><span id="kmVal">30</span><span id="kmDelta" class="delta"></span></span></div>
+      <div class="meter-label"><strong><span class="lbl-l">Koncentrace moci u prezidenta</span><span class="lbl-s">Moc prezidenta</span></strong><span><span id="kmVal">30</span><span id="kmDelta" class="delta"></span></span></div>
       <div class="bar km" id="kmBar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="30" aria-label="Koncentrace moci u prezidenta"><span></span></div>
     </div>
   </div>
@@ -1758,7 +1821,7 @@ const screens = {
         <div class="kicker">Situace</div>
         <p class="lead" style="margin:0">${fmt(s.brief)}</p>
       </div>
-      <div class="card">
+      <div class="card cast-card">
         <div class="kicker">Kdo v příběhu vystupuje</div>
         ${castHtml()}
       </div>
