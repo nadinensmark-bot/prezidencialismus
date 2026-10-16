@@ -275,7 +275,8 @@
   .dlg-body { padding: .8rem 1.2rem 1.2rem; overflow: auto; max-height: calc(88vh - 4rem); }
   .gl-section { margin: .8rem 0 .4rem; }
   details.gl { border: 1px solid var(--line); border-radius: 10px; margin: .4rem 0; background: var(--bg); }
-  details.gl summary { cursor: pointer; padding: .6rem .9rem; font-weight: 600; list-style: none; display: flex; justify-content: space-between; gap: .5rem; }
+  details.gl summary { cursor: pointer; padding: .6rem .9rem; font-weight: 600; list-style: none; display: flex; justify-content: space-between; align-items: center; gap: .5rem; }
+  details.gl summary > span:first-child { flex: 1 1 auto; }
   details.gl summary::-webkit-details-marker { display: none; }
   details.gl summary::after { content: "+"; color: var(--muted); }
   details.gl[open] summary::after { content: "−"; }
